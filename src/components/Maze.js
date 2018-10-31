@@ -14,28 +14,67 @@ S #   #   #
 ###########
 */
 
-function solveMaze(maze) {
+function create2DArray(x, y) {
+  var arr = new Array([]);
+
+  for (var i = 0; i < x; i++) {
+    arr[i] = [];
+    for (var j = 0; j < y; j++) {
+      arr[i][j] = 0;
+    }
+  }
+  return arr;
+}
+
+function getStart(maze) {
+  var i = 0;
+  while (i < maze.length) {
+    if (maze[i][0] == "S") {
+      return i;
+    }
+    i++;
+  }
+  return -1;
+}
+
+function solveMaze(maze, solution) {
   this.maze = maze;
 
-  this.traverse = function(column, row) {
-    if (this.maze[column][row] == "F") {
-      console.log("Solved " + column + ", " + row);
-    } else if (this.maze[column][row] == "$") {
-      console.log("path" + column + "," + row);
-      this.maze[column][row] = "_";
-      if (column < this.maze.length - 1);
-      {
-        this.traverse(column + 1, row);
-      }
-      if (row < this.maze[column].length - 1) {
-        this.traverse(column, row + 1);
-      }
-      if (column > 0) {
-        this.traverse(column - 1, row);
-      }
-      if (row > 0) {
-        this.traverse(column, row - 1);
-      }
+  var memory = create2DArray(maze.length, maze[0].length);
+  var maxRows = maze.length;
+  var maxColumns = maze[0].length;
+  this.traverse = function(i, j) {
+    if (i < 0 || j < 0 || i >= maxRows || j >= maxColumns) {
+      return false;
+    }
+
+    if (memory[i][j] == 1) {
+      return false;
+    }
+
+    memory[i][j] = 1;
+
+    if (maze[i][j] == "#") {
+      return false;
+    }
+
+    if (maze[i][j] == "F") {
+      solution[i][j] = 1;
+      return true;
+    }
+
+    solution[i][j] = 1;
+    var r1 = this.traverse(i + 1, j);
+
+    var r3 = this.traverse(i - 1, j);
+    var r2 = this.traverse(i, j + 1);
+
+    var r4 = this.traverse(i, j - 1);
+    if (r1 || r2 || r3 || r4) {
+      return true;
+    } else {
+      solution[i][j] = 0;
+      return false;
     }
   };
 }
@@ -59,11 +98,13 @@ export class Maze extends Component {
     };
 
     inputMazeToArray(inputMaze);
-    var solvedmaze = new solveMaze(mazeArray);
-    solvedmaze.traverse(1, 1);
+    var solution = create2DArray(maze.length, maze[0].length);
+    var solvedmaze = new solveMaze(mazeArray, solution);
+    solvedmaze.traverse(getStart(maze), 0);
+
     var newMazeArray = [];
-    for (var i = 0; i < mazeArray.length; i++) {
-      newMazeArray[i] = mazeArray[i].toString();
+    for (var i = 0; i < solution.length; i++) {
+      newMazeArray[i] = solution[i].toString();
     }
 
     return newMazeArray.map((mazeRow, index) => {
